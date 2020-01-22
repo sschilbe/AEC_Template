@@ -6,6 +6,7 @@ Steps for setting up environment:
 3. Run "pip install virtualenv" - this manages "Virtual Environments" for Python and keeps all of your dependencies separate
 
 4. Navigate to ./server in the repository
+
 5. Run the command "mkvirtualenv AEC_Qualifier" - makes a new virtual environment
     - If the virtual environment is running you will see (AEC_Qualifier) to the left of the directory name in your terminal
     - to stop the venv run "deactivate", to start it again run "workon AEC_Qualifier"
@@ -14,11 +15,11 @@ file
 
 7. Install dependencies (navigate to ./client)
     - If you don't have npm installed go to https://www.npmjs.com/get-npm
-    - "npm install -g @vue/cli@3.7.0"       - Vue cli for creating and managing Vue app
-    - "npm install axios@0.18.0 --save"     - this installs Axios which will be used for Ajax requests between Vue and Flask
-    - "npm install bootstrap@4.3.1 --save"  - bootstrap for looking pretty
-
+    - "npm install" will install all of the packages that you need for getting the project up and running
+    - The Vue application is using a component library called Vuetify https://vuetifyjs.com/en so we don't have to much around with any of the       styling stuff
+    
 8. To run the vue server navigate to ./client and run "npm run serve" - this builds it in development so that any changes are updated when the file is saved (this means you don't have to keep stopping and starting the server)
+
 9. To run the flask server navigate to ./server and run "python app.py" - it is configured to build in debug mode so that any changes are reflected when files are saved
 
 *For this to work you need to have both the Vue server and the Flask server running at the same time*
