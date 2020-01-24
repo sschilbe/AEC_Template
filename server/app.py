@@ -211,7 +211,7 @@ def getFilledGrid( grid, city, budget, targetcarbonCapturePercentage ):
                     grid[x][y]['updatedValue'] = round( grid[x][y]['updatedValue'], 1 )
     # End while
 
-    return grid, budget - budgetRemaining, round( ( ( totalCarbonReduction / totalCarbon ) * 100 ), 2 )
+    return grid, round( budget - budgetRemaining, 2 ), round( ( ( totalCarbonReduction / totalCarbon ) * 100 ), 2 )
 
 def calculateCarbonPerDollar( grid, i, j, device ):
     # Iterate in a circle around the spot
