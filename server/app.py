@@ -108,12 +108,12 @@ def parse_ccs_list_from_data_lines(ccs_data_lines):
         new_li.append(new_ccs)
     return new_li
 
-@app.route('/cityGrid')
-def cityGrid():
+@app.route('/cityGrid/<cityName>')
+def cityGrid(cityName):
     parse_city_data()
     parse_ccs_data()
 
-    city = next( city for city in list_of_cities if city.name == request.args.get('city') )
+    city = next( city for city in list_of_cities if city.name == cityName )
     budget = 1750000
     carbonCapturePercentage = 21
     
