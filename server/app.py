@@ -71,6 +71,7 @@ def parse_city_from_data_lines(city_data_lines):
 # builds and returns a 2-D list representing the grid of data for the city
 def build_grid_data(num_rows, num_cols, city_data_lines):
     grid_data = []
+    grid_id = 1
     for i in range(4, num_rows+4):
         grid_data_line = city_data_lines[i].split(',')
         new_li = []
@@ -79,9 +80,11 @@ def build_grid_data(num_rows, num_cols, city_data_lines):
             value = float(grid_data_line[j])
             acceptable_location = grid_data_line[j+1]
             new_dict = {}
+            new_dict["id"] = grid_id
             new_dict["value"] = value
             new_dict["acceptable_location"] = bool(int(acceptable_location))
             new_li.append(new_dict)
+            grid_id += 1 # iterate id 
         grid_data.append(new_li)
     return grid_data
     
