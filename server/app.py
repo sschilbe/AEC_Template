@@ -83,11 +83,11 @@ def build_grid_data(num_rows, num_cols, city_data_lines):
         grid_data_line = city_data_lines[i].split(',')
         new_li = []
         for j in range(0, num_cols, 2):
-            value = grid_data_line[j]
+            value = float(grid_data_line[j])
             acceptable_location = grid_data_line[j+1]
             new_dict = {}
             new_dict["value"] = value
-            new_dict["acceptable_location"] = bool(acceptable_location)
+            new_dict["acceptable_location"] = bool(int(acceptable_location))
             new_li.append(new_dict)
         grid_data.append(new_li)
     return grid_data
