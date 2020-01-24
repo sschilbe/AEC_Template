@@ -1,10 +1,16 @@
 <template>
   <v-app>
-    <TopNav v-on:map-change="mapChange"/>
+    <TopNav v-on:map-change="mapChange" />
     <v-content>
       <v-container fluid>
-          <Grid :grid-data="gridData" class="large-background"
-          :style="{ backgroundImage: 'url(' + require('./assets/map-' + provinceCode + '.png') + ')' }"/>
+        <InfoForm :results="gridData.results"/>
+        <Grid
+          :grid-data="gridData"
+          class="large-background"
+          :style="{
+            backgroundImage: 'url(' + require('./assets/map-' + provinceCode + '.png') + ')'
+          }"
+        />
       </v-container>
     </v-content>
   </v-app>
@@ -13,34 +19,35 @@
 <script>
 import TopNav from "./components/TopNav";
 import Grid from "./components/Grid";
-import axios from 'axios';
+import axios from "axios";
+import InfoForm from "./components/InfoForm";
 
 export default {
-
-  name: 'App',
+  name: "App",
   components: {
     TopNav,
-    Grid
+    Grid,
+    InfoForm
   },
   methods: {
     mapChange(code) {
       this.provinceCode = code;
 
       let cityName;
-      switch(code) {
-        case 'NB':
-          cityName = 'Saint John';
+      switch (code) {
+        case "NB":
+          cityName = "Saint John";
           break;
-        case 'NS':
-          cityName = 'Halifax';
+        case "NS":
+          cityName = "Halifax";
           break;
-        case 'NL':
-          cityName = 'Saint John\'s';
+        case "NL":
+          cityName = "Saint John's";
           break;
       }
 
       axios
-        .get('http://localhost:5000/cityGrid/' + cityName)
+        .get("http://localhost:5000/cityGrid/" + cityName)
         .then(response => (this.gridData = response.data));
     }
   },
@@ -48,7 +55,7 @@ export default {
     this.mapChange(this.provinceCode);
   },
   data: () => ({
-    provinceCode: 'NB',
+    provinceCode: "NB",
     gridData: {}
   })
 };
