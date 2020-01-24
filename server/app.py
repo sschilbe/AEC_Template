@@ -27,12 +27,24 @@ class CitySchema(ma.Schema):
     class Meta:
         fields = ('name', 'num_rows', 'num_cols', 'grid_data')
 
+list_of_cities = []
 cities_schema = CitySchema(many=True)
 
-list_of_cities = []
+class CCS():
+    def __init__(self, name, cost, radii):
+        self.name = name
+        self.cost = cost
+        self.radii = radii
+
+class CCSSchema(ma.Schema):
+    class Meta:
+        fields = ('name', 'cost', 'radii')
+
+list_of_ccs = []
+ccs_schema = CCSSchema(many=True)
 
 # parses in city data from text files and adds to list_of_cities
-@app.route('/parse', methods=['GET'])
+@app.route('/parse/cities', methods=['GET'])
 def parse_city_data():
     halifax_data_file = open('./data/cities/Halifax.txt', 'r')
     halifax_data_lines = halifax_data_file.readlines()
@@ -80,6 +92,28 @@ def build_grid_data(num_rows, num_cols, city_data_lines):
         grid_data.append(new_li)
     return grid_data
     
+
+@app.route('/parse/ccs', methods=['GET'])
+def parse_ccs_data():
+    ccs_data_file = open('./data/CCS/carbonCapture.txt', 'r')
+    ccs_data_lines = ccs_data_file.readlines()
+    list_of_ccs = parse_ccs_list_from_data_lines(ccs_data_lines)
+    ccs_data_file.close()
+
+    return ccs_schema.jsonify(list_of_ccs)
+
+def parse_ccs_list_from_data_lines(ccs_data_lines):
+    new_li = []
+    for i, ccs in enumerate(ccs_data_lines):
+        ccs_data = ccs_data_lines[i].split(', ')
+        name = ccs_data[0]
+        cost = ccs_data[1]
+        radii = []
+        for j in range(2, len(ccs_data)):
+            radii.append(ccs_data[j].rstrip())
+        new_ccs = CCS(name, cost, radii)
+        new_li.append(new_ccs)
+    return new_li
 
 @app.route('/cityGrid')
 def cityGrid():
