@@ -107,10 +107,10 @@ def parse_ccs_list_from_data_lines(ccs_data_lines):
     for i, ccs in enumerate(ccs_data_lines):
         ccs_data = ccs_data_lines[i].split(', ')
         name = ccs_data[0]
-        cost = ccs_data[1]
+        cost = float(ccs_data[1])
         radii = []
         for j in range(2, len(ccs_data)):
-            radii.append(ccs_data[j].rstrip())
+            radii.append(float(ccs_data[j].rstrip()))
         new_ccs = CCS(name, cost, radii)
         new_li.append(new_ccs)
     return new_li
