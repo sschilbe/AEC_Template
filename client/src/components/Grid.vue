@@ -1,11 +1,11 @@
 <template>
   <v-row align="center" justify="center">
-    <v-col class="text-center">
       <table class="grid-table">
         <tr v-bind:key="index" v-for="(row, index) in gridData.grid">
           <td
             class="grid-cell"
-            v-bind:class="{ hasCcs: hasCCS(cell) }"
+            v-bind:class="{ hasCcs: hasCCS(cell)}"
+            v-bind:style="{ backgroundColor: 'rgb(156, 39, 176, '+ ccsDiff(cell) +')', color: ccsDiff(cell) ? 'white' : 'black'}"
             v-bind:key="cell.id"
             v-for="cell in row"
             v-tooltip="tooltipFor(cell)"
@@ -14,7 +14,6 @@
           </td>
         </tr>
       </table>
-    </v-col>
   </v-row>
 </template>
 
@@ -29,14 +28,21 @@ export default {
   },
   methods: {
     hasCCS(cell) {
-      return cell.deviceAtLocation !== "";
+      return cell['deviceAtLocation'];
     },
     tooltipFor(cell) {
       let tooltip = "Original value: " + cell.originalValue;
-      if (cell.deviceAtLocation !== "") {
-        tooltip += "<br>CCS Device Used: " + cell.deviceAtLocation.deviceName;
+      if (cell['deviceAtLocation']) {
+        tooltip += "<br>CCS Device Used: " + cell.deviceAtLocation.name;
       }
       return tooltip;
+    },
+    ccsDiff(cell) {
+      if (cell.originalValue !== cell.updatedValue) {
+        return cell.originalValue/cell.updatedValue - 0.75;
+      } else {
+        return 0;
+      }
     }
   }
 };
@@ -44,13 +50,13 @@ export default {
 
 <style scoped>
 .hasCcs {
-  background-color: #9c27b0;
+  background-color: #F44336 !important;
   color: white;
 }
 
 .grid-cell {
-  height: 6rem;
-  width: 6rem;
+  height: 10rem;
+  width: 10rem;
   text-align: center;
   font-size: 2rem;
 }
@@ -61,9 +67,10 @@ export default {
 }
 
 td {
-  border: 1px solid black;
+  border:2px solid black;
 }
 td:hover {
-  background-color: #adadad;
+  background-color: white;
+  color: black;
 }
 </style>
