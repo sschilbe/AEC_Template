@@ -122,22 +122,23 @@ def cityGrid():
     parse_city_data()
     parse_ccs_data()
 
-    city = list_of_cities[0].name
+    city = next( city for city in list_of_cities if city.name == request.args.get('city') )
     budget = 1750000
     carbonCapturePercentage = 21
     
     # Get the original grid for the given city
-    grid = list_of_cities[0].grid_data
+    grid = city.grid_data
     gridCopy = copy.deepcopy( grid )
     
     updatedGrid, totalSpent, actualCarbonCapturePercent = getFilledGrid( gridCopy, city, budget, carbonCapturePercentage )
 
-    for i, row in enumerate( updatedGrid ):
-        for j, column in enumerate( row ):
+    for row in updatedGrid:
+        for column in row:
+            print( column )
             del column['acceptable_location']
 
     data = json.dumps({
-        'city': city,
+        'city': city.name,
         'dimensions': {
             'length': len( updatedGrid ),
             'width': len( updatedGrid[0] )
