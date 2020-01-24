@@ -120,7 +120,11 @@ def cityGrid():
     city = request.args.get('city')
     budget = 1750000
     carbonCapturePercentage = 21
-    grid, totalSpent, actualCarbonCapturePercent = getFilledGrid( city, budget, carbonCapturePercentage )
+    
+    # Get the original grid for the given city
+    grid = getGridForCity( city )
+
+    grid, totalSpent, actualCarbonCapturePercent = getFilledGrid( grid, city, budget, carbonCapturePercentage )
     data = json.dumps({
         'city': city,
         'dimensions': {
@@ -138,11 +142,87 @@ def cityGrid():
 
     return data
 
-def getFilledGrid( city, budget, carbonCapturePercentage ):
-    grid = [[]]
-    totalSpent = 1500000
-    actualCarbonCapturePercent = 22
-    return grid, totalSpent, actualCarbonCapturePercent
+def getFilledGrid( grid, city, budget, targetcarbonCapturePercentage ):
+    # Calculate the total carbon emitted for that city
+    totalCarbon = [[sum(element.value) for element in row] for row in grid]
+
+    # Initialize all needed variables
+    budgetRemaining = budget
+    totalCarbonReduction = 0
+    currentReduction = 0
+
+    # Keep looping while targets have not been met
+    while( budgetRemaining > 0 and ( totalCarbonReduction / totalCarbon * 100 ) < targetcarbonCapturePercentage):
+        placed = False
+        lowest = None
+
+        # Loop through each Row
+        for i, row in enumerate( grid ):
+            # Loop through each column in row
+            for j, column in enumerate( row ):
+                # Can a device be placed here
+                if column.canPlace:
+                    # Try each device in the device list
+                    for device in devices:
+                        if budgetRemaining - device.cost > 0:
+                            # Have enough money to try this device
+                            carbonPerDollar, currentReduction = calculateCarbonPerDollar( grid, i, j, device )
+
+                            if lowest == None:
+                                placed = True
+                                lowest = { 'row': i, 'column': j, 'device': device, 'carbonPerDollar': carbonPerDollar, 'reduction': currentReduction }
+                            else:
+                                if carbonPerDollar > lowest['device'].carbonPerDollar:
+                                    lowest = { 'row': i, 'column': j, 'device': device, 'carbonPerDollar': carbonPerDollar, 'reduction': currentReduction }
+                    # End devices for
+            # End column for
+        # End row for
+
+        if not placed:
+            # Could not place a device anywhere so we should exit the equation
+            break
+
+        # Update calculated values with this device placement
+        budgetRemaining -= lowest['device'].cost
+        totalCarbonReduction += lowest['reduction']
+        grid[lowest['row']][lowest['column']].canPlace = False
+        grid[lowest['row']][lowest['column']].device = lowes['device']
+
+        # Update the grid values with the impact of placing this device
+        radius = len( device.radii )
+        centerX = i
+        centerY = j
+        for x in range( centerX - radius, centerX + radius):
+            for y in range( centerY - radius, centerY + radius ):
+                distance = dist( centerX, centerY, x, y )
+                if validSpot( distance, radius, x, y , len( grid ), len( grid[0] ) ):
+                    grid[x][y].value -= grid[x][y].value * ( device.radii[distance] / 100 )
+
+    # End while
+
+    return grid, budget - budgetRemaining, ( totalCarbonReduction / totalCarbon * 100 )
+
+def calculateCarbonPerDollar( grid, i, j, device ):
+    # Iterate in a circle around the spot
+    radius = len( device.radii )
+    centerX = i
+    centerY = j
+    carbonReduction = 0
+
+    for x in range( centerX - radius, centerX + radius):
+        for y in range( centerY - radius, centerY + radius ):
+            distance = dist( centerX, centerY, x, y )
+            if validSpot( distance, radius, x, y , len( grid ), len( grid[0] ) ):
+                carbonReduction += grid[x][y].value * ( device.radii[distance] / 100 )
+
+    carbonPerDollar = carbonReduction/device.cost
+    return carbonPerDollar, carbonReduction
+
+def validSpot( distance, radius, x, y , xMax, yMax ):
+    return distance <= radius and x >= 0 and y >=0 and x < xMax and y < yMax
+
+def dist(x1, y1, x2, y2):
+    return abs( x1 - x2 ) + abs( y1 - y2 )
 
 if __name__ == '__main__':
     app.run()
