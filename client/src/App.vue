@@ -1,9 +1,10 @@
 <template>
   <v-app>
-    <TopNav />
+    <TopNav v-on:map-change="mapChange"/>
     <v-content>
       <v-container fluid>
-          <Grid :grid-data="data" />
+          <Grid :grid-data="gridData" class="large-background"
+          :style="{ backgroundImage: 'url(' + require('./assets/map-' + provinceCode + '.png') + ')' }"/>
       </v-container>
     </v-content>
   </v-app>
@@ -14,19 +15,24 @@ import TopNav from "./components/TopNav";
 import Grid from "./components/Grid";
 
 export default {
-  name: "App",
 
+  name: 'App',
   components: {
     TopNav,
     Grid
   },
-
+  methods: {
+    mapChange(code) {
+      this.provinceCode = code;
+    },
+  },
   data: () => ({
-    data: {
-      city: "halifax",
-      gridDimensions: {
-        length: 3,
-        width: 3
+    provinceCode: 'NB',
+    gridData: {
+      "city": "halifax",
+      "gridDimensions": {
+        "length": 3,
+        "width": 3
       },
       grid: [
         [
@@ -870,6 +876,10 @@ export default {
 </script>
 
 <style>
+.large-background {
+  background-size: cover;
+}
+
 /* Tooltip styling from v-tooltip */
 .tooltip {
   display: block !important;
