@@ -159,35 +159,25 @@ def get_filled_grid( grid, city, budget, target_carbon_capture_percentage ):
     total_carbon_reduction = 0
     current_reduction = 0
 
-    # Keep looping while targets have not been met
-    while( budget_remaining > 0 and ( ( total_carbon_reduction / total_carbon ) * 100 ) < target_carbon_capture_percentage):
+    while(targets_have_not_been_met(budget_remaining, total_carbon_reduction, total_carbon, target_carbon_capture_percentage)):
         placed = False
         lowest = None
 
-        # Loop through each Row
+        # try each device at each location
         for i, row in enumerate( grid ):
-            # Loop through each column in row
             for j, column in enumerate( row ):
-                # Can a device be placed here
-                if column['acceptable_location']:
-                    # Try each device in the device list
-                    for device in list_of_ccs:
-                        if budget_remaining - device.cost > 0:
-                            # Have enough money to try this device
-                            carbon_per_dollar, current_reduction = calculate_carbon_per_dollar( grid, i, j, device )
-                            if lowest == None:
-                                placed = True
-                                lowest = { 'row': i, 'column': j, 'device': device, 'carbonPerDollar': carbon_per_dollar, 'reduction': current_reduction }
-                            else:
-                                if carbon_per_dollar > lowest['carbonPerDollar']:
-                                    lowest = { 'row': i, 'column': j, 'device': device, 'carbonPerDollar': carbon_per_dollar, 'reduction': current_reduction }
-                    # End devices for
-            # End column for
-        # End row for
+                if not column['acceptable_location']:
+                    continue
 
+                for device in list_of_ccs:
+                    if budget_remaining - device.cost > 0:
+                        placed = True
+                        carbon_per_dollar, current_reduction = calculate_carbon_per_dollar( grid, i, j, device )
+                        if lowest == None or carbon_per_dollar > lowest['carbonPerDollar']:
+                            lowest = { 'row': i, 'column': j, 'device': device, 'carbonPerDollar': carbon_per_dollar, 'reduction': current_reduction }
+
+        # exit if could not place a device
         if not placed:
-
-            # Could not place a device anywhere so we should exit the equation
             break
 
         # Update calculated values with this device placement
@@ -209,9 +199,17 @@ def get_filled_grid( grid, city, budget, target_carbon_capture_percentage ):
                 if valid_spot( distance, radius, x, y , len( grid ), len( grid[0] ) ):
                     grid[x][y]['updatedValue'] -= grid[x][y]['originalValue'] * ( lowest['device'].radii[distance] / 100 )
                     grid[x][y]['updatedValue'] = round( grid[x][y]['updatedValue'], 1 )
-    # End while
 
-    return grid, round( budget - budget_remaining, 2 ), round( ( ( total_carbon_reduction / total_carbon ) * 100 ), 2 )
+    return grid, calculate_total_spent(budget, budget_remaining), calculate_percent_reduction(total_carbon_reduction, total_carbon)
+
+def targets_have_not_been_met(budget_remaining, total_carbon_reduction, total_carbon, target_carbon_capture_percentage):
+    return budget_remaining > 0 and ((total_carbon_reduction / total_carbon) * 100) < target_carbon_capture_percentage
+
+def calculate_total_spent(budget, budget_remaining):
+    return round(budget - budget_remaining, 2)
+
+def calculate_percent_reduction(total_carbon_reduction, total_carbon):
+    return round(((total_carbon_reduction / total_carbon ) * 100), 2)
 
 def calculate_carbon_per_dollar( grid, i, j, device ):
     # Iterate in a circle around the spot
