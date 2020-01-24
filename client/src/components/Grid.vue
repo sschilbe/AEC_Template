@@ -28,18 +28,21 @@ export default {
   },
   methods: {
     hasCCS(cell) {
-      return cell.deviceAtLocation !== "";
+      return cell['deviceAtLocation'];
     },
     tooltipFor(cell) {
       let tooltip = "Original value: " + cell.originalValue;
-      if (cell.deviceAtLocation !== "") {
-        tooltip += "<br>CCS Device Used: " + cell.deviceAtLocation.deviceName;
+      if (cell['deviceAtLocation']) {
+        tooltip += "<br>CCS Device Used: " + cell.deviceAtLocation.name;
       }
       return tooltip;
     },
     ccsDiff(cell) {
-      return cell.originalValue/cell.updatedValue - 1;
-         
+      if (cell.originalValue !== cell.updatedValue) {
+        return cell.originalValue/cell.updatedValue - 0.75;
+      } else {
+        return 0;
+      }
     }
   }
 };
