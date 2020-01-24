@@ -5,8 +5,10 @@
         <tr v-bind:key="index" v-for="(row, index) in gridData.grid">
           <td class="grid-cell"
               v-bind:class="{ hasCcs: hasCCS(cell) }"
-              v-bind:key="cell.id" v-for="cell in row">
-            {{ cell.originalValue }}
+              v-bind:key="cell.id" v-for="cell in row"
+              v-tooltip="tooltipFor(cell)"
+          >
+            {{ cell.upatedValue }}
           </td>
         </tr>
       </table>
@@ -23,13 +25,20 @@
     }},
     methods: {
       hasCCS(cell) {
-        return cell["deviceAtLocation"] !== "";
+        return cell.deviceAtLocation !== "";
+      },
+      tooltipFor(cell) {
+        let tooltip = "Original value: " + cell.originalValue;
+        if (cell.deviceAtLocation !== "") {
+          tooltip += "<br>CCS Device Used: " + cell.deviceAtLocation.deviceName;
+        }
+        return tooltip;
       }
     }
   }
 </script>
 
-<style scoped>
+<style>
   .hasCcs {
     background-color: fuchsia;
   }
