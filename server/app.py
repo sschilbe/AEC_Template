@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, send_from_directory, request
 from flask_cors import CORS
 from flask_marshmallow import Marshmallow
+import copy
 import json
 import os, pdb
 
@@ -98,7 +99,7 @@ def build_grid_data(num_rows, num_cols, city_data_lines):
 def parse_ccs_data():
     ccs_data_file = open('./data/CCS/carbonCapture.txt', 'r')
     ccs_data_lines = ccs_data_file.readlines()
-    list_of_ccs = parse_ccs_list_from_data_lines(ccs_data_lines)
+    list_of_ccs.extend( parse_ccs_list_from_data_lines(ccs_data_lines) )
     ccs_data_file.close()
 
     return ccs_schema.jsonify(list_of_ccs)
@@ -118,21 +119,30 @@ def parse_ccs_list_from_data_lines(ccs_data_lines):
 
 @app.route('/cityGrid')
 def cityGrid():
-    city = request.args.get('city')
+    parse_city_data()
+    parse_ccs_data()
+
+    city = list_of_cities[0].name
     budget = 1750000
     carbonCapturePercentage = 21
     
     # Get the original grid for the given city
-    grid = getGridForCity( city )
+    grid = list_of_cities[0].grid_data
+    gridCopy = copy.deepcopy( grid )
+    
+    updatedGrid, totalSpent, actualCarbonCapturePercent = getFilledGrid( gridCopy, city, budget, carbonCapturePercentage )
 
-    grid, totalSpent, actualCarbonCapturePercent = getFilledGrid( grid, city, budget, carbonCapturePercentage )
+    for i, row in enumerate( updatedGrid ):
+        for j, column in enumerate( row ):
+            del column['acceptable_location']
+
     data = json.dumps({
         'city': city,
         'dimensions': {
-            'length': len( grid ),
-            'width': len( grid[0] )
+            'length': len( updatedGrid ),
+            'width': len( updatedGrid[0] )
         },
-        'grid': grid,
+        'grid': updatedGrid,
         'results': {
             'budget': budget,
             'totalSpent': totalSpent,
@@ -145,7 +155,13 @@ def cityGrid():
 
 def getFilledGrid( grid, city, budget, targetcarbonCapturePercentage ):
     # Calculate the total carbon emitted for that city
-    totalCarbon = [[sum(element.value) for element in row] for row in grid]
+    totalCarbon = 0
+    for row in grid:
+        for column in row:
+            totalCarbon += column['value']
+            column['originalValue'] = column['value']
+            column['updatedValue'] = column['originalValue']
+            del column['value']
 
     # Initialize all needed variables
     budgetRemaining = budget
@@ -153,7 +169,7 @@ def getFilledGrid( grid, city, budget, targetcarbonCapturePercentage ):
     currentReduction = 0
 
     # Keep looping while targets have not been met
-    while( budgetRemaining > 0 and ( totalCarbonReduction / totalCarbon * 100 ) < targetcarbonCapturePercentage):
+    while( budgetRemaining > 0 and ( ( totalCarbonReduction / totalCarbon ) * 100 ) < targetcarbonCapturePercentage):
         placed = False
         lowest = None
 
@@ -162,50 +178,53 @@ def getFilledGrid( grid, city, budget, targetcarbonCapturePercentage ):
             # Loop through each column in row
             for j, column in enumerate( row ):
                 # Can a device be placed here
-                if column.canPlace:
+                if column['acceptable_location']:
                     # Try each device in the device list
-                    for device in devices:
+                    for device in list_of_ccs:
                         if budgetRemaining - device.cost > 0:
                             # Have enough money to try this device
                             carbonPerDollar, currentReduction = calculateCarbonPerDollar( grid, i, j, device )
-
                             if lowest == None:
                                 placed = True
                                 lowest = { 'row': i, 'column': j, 'device': device, 'carbonPerDollar': carbonPerDollar, 'reduction': currentReduction }
                             else:
-                                if carbonPerDollar > lowest['device'].carbonPerDollar:
+                                if carbonPerDollar > lowest['carbonPerDollar']:
                                     lowest = { 'row': i, 'column': j, 'device': device, 'carbonPerDollar': carbonPerDollar, 'reduction': currentReduction }
                     # End devices for
             # End column for
         # End row for
 
         if not placed:
+
             # Could not place a device anywhere so we should exit the equation
             break
 
         # Update calculated values with this device placement
         budgetRemaining -= lowest['device'].cost
         totalCarbonReduction += lowest['reduction']
-        grid[lowest['row']][lowest['column']].canPlace = False
-        grid[lowest['row']][lowest['column']].device = lowes['device']
+        grid[lowest['row']][lowest['column']]['acceptable_location'] = False
+        grid[lowest['row']][lowest['column']]['deviceAtLocation'] = {}
+        grid[lowest['row']][lowest['column']]['deviceAtLocation']['name'] = lowest['device'].name
+        grid[lowest['row']][lowest['column']]['deviceAtLocation']['radii'] = len( lowest['device'].radii ) - 1
 
         # Update the grid values with the impact of placing this device
-        radius = len( device.radii )
-        centerX = i
-        centerY = j
+        radius = len( lowest['device'].radii ) - 1
+        centerX = lowest['row']
+        centerY = lowest['column']
+
         for x in range( centerX - radius, centerX + radius):
             for y in range( centerY - radius, centerY + radius ):
                 distance = dist( centerX, centerY, x, y )
                 if validSpot( distance, radius, x, y , len( grid ), len( grid[0] ) ):
-                    grid[x][y].value -= grid[x][y].value * ( device.radii[distance] / 100 )
-
+                    grid[x][y]['updatedValue'] -= grid[x][y]['updatedValue'] * ( lowest['device'].radii[distance] / 100 )
+                    grid[x][y]['updatedValue'] = round( grid[x][y]['updatedValue'], 1 )
     # End while
 
-    return grid, budget - budgetRemaining, ( totalCarbonReduction / totalCarbon * 100 )
+    return grid, budget - budgetRemaining, round( ( ( totalCarbonReduction / totalCarbon ) * 100 ), 2 )
 
 def calculateCarbonPerDollar( grid, i, j, device ):
     # Iterate in a circle around the spot
-    radius = len( device.radii )
+    radius = len( device.radii ) - 1
     centerX = i
     centerY = j
     carbonReduction = 0
@@ -214,7 +233,7 @@ def calculateCarbonPerDollar( grid, i, j, device ):
         for y in range( centerY - radius, centerY + radius ):
             distance = dist( centerX, centerY, x, y )
             if validSpot( distance, radius, x, y , len( grid ), len( grid[0] ) ):
-                carbonReduction += grid[x][y].value * ( device.radii[distance] / 100 )
+                carbonReduction += grid[x][y]['updatedValue'] * ( device.radii[distance] / 100 )
 
     carbonPerDollar = carbonReduction/device.cost
     return carbonPerDollar, carbonReduction
@@ -227,3 +246,4 @@ def dist(x1, y1, x2, y2):
 
 if __name__ == '__main__':
     app.run()
+
