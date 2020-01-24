@@ -45,7 +45,7 @@ list_of_ccs = []
 ccs_schema = CCSSchema(many=True)
 
 # parses in city data from text files and adds to list_of_cities
-@app.route('/parse/cities', methods=['GET'])
+@app.before_first_request
 def parse_city_data():
     directory_str = './data/cities/'
     directory = os.fsencode(directory_str)
@@ -86,7 +86,7 @@ def build_grid_data(num_rows, num_cols, city_data_lines):
     return grid_data
     
 
-@app.route('/parse/ccs', methods=['GET'])
+@app.before_first_request
 def parse_ccs_data():
     ccs_data_file = open('./data/CCS/carbonCapture.txt', 'r')
     ccs_data_lines = ccs_data_file.readlines()
@@ -110,9 +110,6 @@ def parse_ccs_list_from_data_lines(ccs_data_lines):
 
 @app.route('/cityGrid/<cityName>')
 def cityGrid(cityName):
-    parse_city_data()
-    parse_ccs_data()
-
     city = next( city for city in list_of_cities if city.name == cityName )
     budget = 1750000
     carbonCapturePercentage = 21
@@ -237,4 +234,3 @@ def dist(x1, y1, x2, y2):
 
 if __name__ == '__main__':
     app.run()
-
