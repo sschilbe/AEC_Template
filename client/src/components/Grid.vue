@@ -62,7 +62,6 @@ export default {
 }
 
 .grid-table {
-  margin-top: 110px;
   border-collapse: collapse;
 }
 
