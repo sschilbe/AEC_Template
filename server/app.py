@@ -125,7 +125,6 @@ def cityGrid():
 
     for row in updatedGrid:
         for column in row:
-            print( column )
             del column['acceptable_location']
 
     data = json.dumps({
@@ -208,7 +207,7 @@ def getFilledGrid( grid, city, budget, targetcarbonCapturePercentage ):
             for y in range( centerY - radius, centerY + radius ):
                 distance = dist( centerX, centerY, x, y )
                 if validSpot( distance, radius, x, y , len( grid ), len( grid[0] ) ):
-                    grid[x][y]['updatedValue'] -= grid[x][y]['updatedValue'] * ( lowest['device'].radii[distance] / 100 )
+                    grid[x][y]['updatedValue'] -= grid[x][y]['originalValue'] * ( lowest['device'].radii[distance] / 100 )
                     grid[x][y]['updatedValue'] = round( grid[x][y]['updatedValue'], 1 )
     # End while
 
@@ -225,7 +224,7 @@ def calculateCarbonPerDollar( grid, i, j, device ):
         for y in range( centerY - radius, centerY + radius ):
             distance = dist( centerX, centerY, x, y )
             if validSpot( distance, radius, x, y , len( grid ), len( grid[0] ) ):
-                carbonReduction += grid[x][y]['updatedValue'] * ( device.radii[distance] / 100 )
+                carbonReduction += grid[x][y]['originalValue'] * ( device.radii[distance] / 100 )
 
     carbonPerDollar = carbonReduction/device.cost
     return carbonPerDollar, carbonReduction
