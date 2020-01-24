@@ -114,8 +114,8 @@ def parse_ccs_list_from_data_lines(ccs_data_lines):
 @app.route('/cityGrid/<city_name>')
 def city_grid(city_name):
     city = next( city for city in list_of_cities if city.name == city_name )
-    budget = 1750000
-    carbon_capture_percentage = 21
+    budget = float( request.args.get('budget') or 1750000.0 )
+    carbon_capture_percentage = float( request.args.get('capture') or 21.0 )
     
     # Get the original grid for the given city
     grid = city.grid_data
@@ -203,15 +203,15 @@ def get_filled_grid( grid, city, budget, target_carbon_capture_percentage ):
         center_x = lowest['row']
         center_y = lowest['column']
 
-        for x in range( center_x - radius, center_x + radius):
-            for y in range( center_y - radius, center_y + radius ):
+        for x in range( center_x - radius, center_x + radius + 1):
+            for y in range( center_y - radius, center_y + radius + 1 ):
                 distance = dist( center_x, center_y, x, y )
                 if valid_spot( distance, radius, x, y , len( grid ), len( grid[0] ) ):
                     grid[x][y]['updatedValue'] -= grid[x][y]['originalValue'] * ( lowest['device'].radii[distance] / 100 )
                     grid[x][y]['updatedValue'] = round( grid[x][y]['updatedValue'], 1 )
     # End while
 
-    return grid, round( budget - budgetRemaining, 2 ), round( ( ( totalCarbonReduction / totalCarbon ) * 100 ), 2 )
+    return grid, round( budget - budget_remaining, 2 ), round( ( ( total_carbon_reduction / total_carbon ) * 100 ), 2 )
 
 def calculate_carbon_per_dollar( grid, i, j, device ):
     # Iterate in a circle around the spot
@@ -220,8 +220,8 @@ def calculate_carbon_per_dollar( grid, i, j, device ):
     center_y = j
     carbon_reduction = 0
 
-    for x in range( center_x - radius, center_x + radius):
-        for y in range( center_y - radius, center_y + radius ):
+    for x in range( center_x - radius, center_x + radius + 1):
+        for y in range( center_y - radius, center_y + radius + 1 ):
             distance = dist( center_x, center_y, x, y )
             if valid_spot( distance, radius, x, y , len( grid ), len( grid[0] ) ):
                 carbon_reduction += grid[x][y]['originalValue'] * ( device.radii[distance] / 100 )
