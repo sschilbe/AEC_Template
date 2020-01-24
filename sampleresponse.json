@@ -1,17 +1,19 @@
 {
 	"city": "halifax",
 	"gridDimensions": {
-		"length": 1,
-		"width": 2
+		"length": 3,
+		"width": 3
 	},
 	"grid": [
 		[
 			{
+				"id": 1,
 				"originalValue": 7,
 				"upatedValue": 6,
 				"deviceAtLocation": ""
 			},
 			{
+				"id": 2,
 				"originalValue": 5,
 				"upatedValue": 5,
 				"deviceAtLocation": {
@@ -20,6 +22,7 @@
 				},
 			},
 			{
+				"id": 3,
 				"originalValue": 7,
 				"upatedValue": 5,
 				"deviceAtLocation": ""
@@ -27,17 +30,20 @@
 		],
 		[
 			{
+				"id": 4,
 				"originalValue": 4,
 				"upatedValue": 3,
 				"deviceAtLocation": ""
 				
 			},
 			{
+				"id": 5,
 				"originalValue": 7,
 				"upatedValue": 6,
 				"deviceAtLocation": ""
 			},
 			{
+				"id": 6,
 				"originalValue": 5,
 				"upatedValue": 2,
 				"deviceAtLocation": {
@@ -48,11 +54,13 @@
 		],
 		[
 			{
+				"id": 7,
 				"originalValue": 6,
 				"upatedValue": 6,
 				"deviceAtLocation": ""
 			},
 			{
+				"id": 8,
 				"originalValue": 4,
 				"upatedValue": 1,
 				"deviceAtLocation": {
@@ -61,6 +69,7 @@
 				},
 			},
 			{
+				"id": 9,
 				"originalValue": 8,
 				"upatedValue": 5,
 				"deviceAtLocation": {

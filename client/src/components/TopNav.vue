@@ -1,5 +1,6 @@
 <template>
     <v-app-bar absolute color="purple" dark>
+
       <v-spacer></v-spacer>
       <v-toolbar-title>AEC 2020: Programming Competition</v-toolbar-title>
       <v-spacer></v-spacer>
