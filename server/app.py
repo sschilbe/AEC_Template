@@ -47,24 +47,15 @@ ccs_schema = CCSSchema(many=True)
 # parses in city data from text files and adds to list_of_cities
 @app.route('/parse/cities', methods=['GET'])
 def parse_city_data():
-    halifax_data_file = open('./data/cities/Halifax.txt', 'r')
-    halifax_data_lines = halifax_data_file.readlines()
-    halifax = parse_city_from_data_lines(halifax_data_lines)
-    halifax_data_file.close()
-
-    saintjohn_data_file = open('./data/cities/SaintJohn.txt', 'r')
-    saintjohn_data_lines = saintjohn_data_file.readlines()
-    saintjohn = parse_city_from_data_lines(saintjohn_data_lines)
-    saintjohn_data_file.close()
-    
-    stjohns_data_file = open('./data/cities/SaintJohn.txt', 'r')
-    stjohns_data_lines = stjohns_data_file.readlines()
-    stjohns = parse_city_from_data_lines(stjohns_data_lines)
-    stjohns_data_file.close()
-
-    list_of_cities.append(halifax)
-    list_of_cities.append(saintjohn)
-    list_of_cities.append(stjohns)
+    directory_str = './data/cities/'
+    directory = os.fsencode(directory_str)
+    for file in os.listdir(directory):
+        filename = os.fsdecode(file)
+        data_file = open(directory_str + filename)
+        data_file_lines = data_file.readlines()
+        city = parse_city_from_data_lines(data_file_lines)
+        data_file.close()
+        list_of_cities.append(city)
 
     return cities_schema.jsonify(list_of_cities)
 
@@ -134,7 +125,6 @@ def cityGrid():
 
     for row in updatedGrid:
         for column in row:
-            print( column )
             del column['acceptable_location']
 
     data = json.dumps({
@@ -217,7 +207,7 @@ def getFilledGrid( grid, city, budget, targetcarbonCapturePercentage ):
             for y in range( centerY - radius, centerY + radius ):
                 distance = dist( centerX, centerY, x, y )
                 if validSpot( distance, radius, x, y , len( grid ), len( grid[0] ) ):
-                    grid[x][y]['updatedValue'] -= grid[x][y]['updatedValue'] * ( lowest['device'].radii[distance] / 100 )
+                    grid[x][y]['updatedValue'] -= grid[x][y]['originalValue'] * ( lowest['device'].radii[distance] / 100 )
                     grid[x][y]['updatedValue'] = round( grid[x][y]['updatedValue'], 1 )
     # End while
 
@@ -234,7 +224,7 @@ def calculateCarbonPerDollar( grid, i, j, device ):
         for y in range( centerY - radius, centerY + radius ):
             distance = dist( centerX, centerY, x, y )
             if validSpot( distance, radius, x, y , len( grid ), len( grid[0] ) ):
-                carbonReduction += grid[x][y]['updatedValue'] * ( device.radii[distance] / 100 )
+                carbonReduction += grid[x][y]['originalValue'] * ( device.radii[distance] / 100 )
 
     carbonPerDollar = carbonReduction/device.cost
     return carbonPerDollar, carbonReduction
